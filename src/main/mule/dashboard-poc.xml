@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1d263260-8dbd-4bcf-82ee-4830c7223bb9" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="52cef26e-c915-4e4b-8675-5e185cb49abc" >
+		<cloudhub:connection username="abcd" password="xyz" environment="ba0fb765-df0a-4d21-9be4-4315e5211562" />
+	</cloudhub:config>
+	<json-logger:config name="JSON_Logger_Config" doc:name="JSON Logger Config" doc:id="e3bd5703-fe2c-4c94-b388-612b03a48ff9" environment="dev" applicationName="abc-poc" applicationVersion="1.0.0"/>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="b2005865-e5c8-4245-9bab-f89a98677c07" >
+		<http:request-connection protocol="HTTPS" host="anypoint.mulesoft.com/cloudhub/api/applications/" >
+			<http:authentication >
+				<http:basic-authentication username="pkarforma99" password="Prithwi$#@999" />
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="42330a4c-da36-4698-ac49-1c7d882cdb1c" >
+		<http:request-connection protocol="HTTPS" host="anypoint.mulesoft.com" >
+		</http:request-connection>
+	</http:request-config>
+	<flow name="dashboard-pocFlow" doc:id="e5074f03-c5ae-45c8-b43e-7359ca74d7e2" >
+		<http:listener doc:name="Listener" doc:id="c044b18d-41e2-4b18-a6b2-3087c4a361f2" config-ref="HTTP_Listener_config" path="/webapp"/>
+		<ee:transform doc:name="Transform Message" doc:id="7f1832cf-30b0-458c-835e-ee6b34568a72" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="tempQueryParams" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams]]></ee:set-variable>
+				<ee:set-variable variableName="homePath" ><![CDATA[%dw 2.0
+output application/json
+---
+"http://dashboard-poc-sb.us-e2.cloudhub.io:80/webapp"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="d2c70336-883d-44ec-a39d-8061ff0a10e6" message='#[{"pk1234": vars.homePath}]'/>
+		<cloudhub:list-applications doc:name="List Applications" doc:id="8990eae1-a004-4d76-8e4d-29dc5c19cbb4" config-ref="CloudHub_Config" retrieveLogLevels="false" retrieveIpAddresses="false" target="tempVar" periodTimeUnit="MICROSECONDS"/>
+		<choice doc:name="Choice" doc:id="3ae8807a-9819-4a5e-8aad-d907a2d89066" >
+			<when expression='#[vars.tempQueryParams."page"=="manage" and !isEmpty(payload)]'>
+				<flow-ref doc:name="Flow Reference" doc:id="5160996b-198a-4c85-b327-cd1c4e9552d4" name="start-stop-app-subflow"/>
+				<flow-ref doc:name="Flow Reference" doc:id="fa75fa59-653f-4c6f-bb23-06386fe049c9" name="initial-page-subflow"/>
+			</when>
+			<when expression='#[vars.tempQueryParams."page"=="manage" and isEmpty(payload)]'>
+				<flow-ref doc:name="Flow Reference" doc:id="0a02e75d-0516-42d6-97a2-d4cfafbb7d25" name="dashboard-pocSub_Flow"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Flow Reference" doc:id="ba837a9e-2504-4e99-bd9c-3e145e7841cc" name="initial-page-subflow"/>
+				<logger level="INFO" doc:name="Logger" doc:id="c9e23802-c37d-44ad-b222-5083fddfe409" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="dashboard-pocFlow1" doc:id="7651e5b1-a816-4187-bc57-a6ab4b3487d0" >
+		<http:listener doc:name="Listener" doc:id="9debf1b8-af71-4dc1-b252-4ad806b47a34" config-ref="HTTP_Listener_config" path="/*"/>
+		<try doc:name="Try" doc:id="f5c12c40-18a8-4c7f-928e-d85835fe9db6" >
+			<http:load-static-resource doc:name="Load static resource" doc:id="b21c55fd-e2a9-48d6-945e-73799a113732" resourceBasePath='#[Mule::p("app.home") ++ "/webapp"]' defaultFile="get-all-apps-sta.html" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="27bef7d1-aa1e-4213-8063-dd0cafcbb3e7" >
+					<logger level="INFO" doc:name="Logger" doc:id="36d7532f-bdd7-435e-a2e8-cefc7e05676a" message="favicon error"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</flow>
+	<sub-flow name="initial-page-subflow" doc:id="8ead1a89-395f-485d-a022-43572ebf8d45" >
+		<ee:transform doc:name="Transform Message" doc:id="4cbf0e2e-483d-4f2e-8b38-15d5b1e402c9" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="appStatusResponse" ><![CDATA[%dw 2.0
+output application/xml writeDeclaration=false
+---
+"table" @(class: "center"): {
+    "tr": {
+        "th": "Application Name",
+        "th": "Status"
+    },
+    "tr": vars.tempVar map (item, index) -> {
+        "td": item.domain,
+        "td" @("id": "data_" ++ (index + 1)): item.status
+    }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<parse-template doc:name="Parse Template" doc:id="1268eafb-2e36-4133-8bcf-696cd81b8e66" location="webapp\get-all-apps-sta.html" />
+		<logger level="INFO" doc:name="Logger" doc:id="1a6054e7-0388-4afa-9bce-6e5208d8f23d" />
+	</sub-flow>
+	<sub-flow name="dashboard-pocSub_Flow" doc:id="d9bff705-a909-49ac-9833-444c140073da" >
+		<ee:transform doc:name="Transform Message" doc:id="69a19712-9f77-4cf4-a207-138efd86533a" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="appStatusResponse" ><![CDATA[%dw 2.0
+output application/xml writeDeclaration=false
+---
+"table" @(class: "center"): {
+    "tr": {
+        "th": "Application Name",
+        "th": "Set Status"
+    },
+    "tr": vars.tempVar map (item, index) -> {
+    	"td": item."domain",
+        "td": {
+        	"select" @(name: item."domain", id: item."domain", class: "select"): {
+        		"option" @(value: "", selected: "", disabled: "", hidden: ""): "Select status",
+        		"option" @(value: "start"): "Start",
+        		"option" @(value: "stop"): "Stop",
+        	}
+        }
+    }
+}]]></ee:set-variable>
+				<ee:set-variable variableName="returnHome" ><![CDATA[%dw 2.0
+output application/xml writeDeclaration=false
+---
+{
+	"a" @(href: vars.homePath): {
+		"button" @(value: "Go back", class: "button_back"): "Home"
+	}
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<parse-template doc:name="Parse Template" doc:id="fa62c881-6a05-4e42-85b2-916ce4a0bfb0" location="webapp/get-status-change.html" />
+		<logger level="INFO" doc:name="Logger" doc:id="fb7eaa53-276c-414e-baa0-f263fcce580a" />
+	</sub-flow>
+	<sub-flow name="start-stop-app-subflow" doc:id="b6bf95b7-5ac0-4fa4-8e29-f5239b5a528d" >
+		<ee:transform doc:name="Transform Message" doc:id="ad534170-3e50-40a2-bdae-bd39488cbc43" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload pluck ((value, key, index) -> {
+    "appName": key,
+    "status": value
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="0e0f29f6-89da-4b29-ad98-76dd37011df9" collection="#[payload]">
+			<http:request method="POST" doc:name="Request" doc:id="21f8b004-c75a-409b-a9c6-252a8e363557" config-ref="HTTP_Request_configuration1" path='#["/cloudhub/api/applications/" ++ payload.appName ++ "/status"]' sendCorrelationId="ALWAYS" correlationId="#[correlationId]">
+				<http:body ><![CDATA[#[{
+	"status": payload.status
+}]]]></http:body>
+				<http:headers ><![CDATA[#[output application/json
+---
+{
+	"X-ANYPNT-ENV-ID" : "ba0fb765-df0a-4d21-9be4-4315e5211562"
+}]]]></http:headers>
+			</http:request>
+		</parallel-foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="85da73ba-acb8-49b0-bd8b-51f72a994662" />
+	</sub-flow>
+</mule>

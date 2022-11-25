@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="style_sheet.css">
+		<title>Mulesoft Runtime Manager Dashboard</title>
+	</head>
+	<body>
+
+		<h1>Cloudhub Applications Dashboard</h1>
+		
+		<a href="http://localhost:8089/webapp">
+			<button value="Home" class="button_back"> Home </button>
+		</a>
+		
+		<a href="http://localhost:8089/webapp?page=manage">
+			<button value="Manage your applications" class="button_back"> Manage your applications </button>
+		</a>
+        <br><br>
+
+		<form id="status_form" class="form_class" method="post">
+			<br><br>
+			<table class="center">
+			  <tr>
+			    <th>Application Name</th>
+			    <th>Response</th>
+			    <th>Message</th>
+			  </tr>
+			  <tr>
+			    <td>hashedin-dev-email-notification-sys-api-v1</td>
+			    <td style="color:#006400">Success</td>
+			    <td>Status change successfull</td>
+			  </tr>
+			  <tr>
+			    <td>hashedin-dev-error-handler-sys-api-v1</td>
+			    <td style="color:#FF0000">Failure</td>
+			    <td>Status change failed</td>
+			  </tr>
+			  <tr>
+			    <td>hashedin-dev-batch-email-impl-v1</td>
+			    <td style="color:#006400">Success</td>
+			    <td>Status change successfull</td>
+			  </tr>
+			</table>
+		
+		</form>
+	</body>
+</html>

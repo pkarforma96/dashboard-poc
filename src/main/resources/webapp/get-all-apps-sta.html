@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+	<head>		
+		<script type="text/javascript" src="/script.js"></script>
+		<link rel="stylesheet" type="text/css" href="/style_sheet.css">
+		<title>Mulesoft Runtime Manager Dashboard</title>
+	</head>
+	<body>
+		<h1>Cloudhub Applications Dashboard</h1>
+		<br>
+		<form id="status_form" class="form_class" method="put">
+			<br>		
+			#[vars.appStatusResponse]
+			<script type="text/javascript">setStatusIcon();</script>
+			<br><br>
+			<input type="hidden" name="page" value="manage">
+			<input type="submit" value="Manage your Apps" class="button">
+		</form>
+	</body>
+</html>

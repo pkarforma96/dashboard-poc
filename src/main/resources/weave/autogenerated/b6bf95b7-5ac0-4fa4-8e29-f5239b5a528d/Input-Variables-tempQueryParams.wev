@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_b6bf95b7_5ac0_4fa4_8e29_f5239b5a528d_Input_Variables_tempQueryParams = { _?: String }
+
